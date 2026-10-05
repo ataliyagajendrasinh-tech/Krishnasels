@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedraj Masala - Sales Order System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-green: #0d9e60;
+            --primary-yellow: #f4e11e;
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--primary-green);
+            text-align: center;
+            padding: 20px;
+            border-bottom: 5px solid var(--primary-yellow);
+        }
+
+        header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            color: #e0f5e9;
+            margin: 5px 0 0 0;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #eee;
+            border-bottom: 1px solid #ccc;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 110px;
+            padding: 15px 8px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #555;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-green);
+            border-bottom: 3px solid var(--primary-green);
+        }
+
+        .tab-btn .badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 14px;
+            text-align: center;
+        }
+
+        .tab-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 5px rgba(13, 158, 96, 0.3);
+        }
+
+        .form-control[readonly] {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+
+        .btn {
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background-color: #0b7a4a;
+        }
+
+        .btn-yellow {
+            background-color: var(--primary-yellow);
+            color: #333;
+        }
+        
+        .btn-yellow:hover {
+            background-color: #d4c318;
+        }
+
+        .btn-pdf {
+            background-color: #e74c3c;
+        }
+        .btn-pdf:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-excel {
+            background-color: #217346;
+        }
+        .btn-excel:hover {
+            background-color: #1a5c38;
+        }
+
+        .btn-cancel {
+            background-color: #95a5a6;
+        }
+        .btn-cancel:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-danger {
+            background-color: #c0392b;
+        }
+        .btn-danger:hover {
+            background-color: #a93226;
+        }
+
+        .btn-blue {
+            background-color: #3498db;
+        }
+        .btn-blue:hover {
+            background-color: #2980b9;
+        }
+
+        .order-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .order-section h3 {
+            margin-top: 0;
+            color: var(--primary-green);
+            border-bottom: 2px solid var(--primary-yellow);
+            padding-bottom: 5px;
+        }
+
+        .info-badge {
+            background: #e8f8f0;
+            border: 1px solid var(--primary-green);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #0b7a4a;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-badge span {
+            font-weight: bold;
+        }
+
+        .product-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .product-row select, .product-row input {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .product-row .pack-display {
+            background: #e8f8f0;
+            color: #0b7a4a;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .product-row button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: bold;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hint-box {
+            background: #fffbe6;
+            border-left: 4px solid var(--primary-yellow);
+            padding: 8px 12px;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #7a6a00;
+            border-radius: 4px;
+        }
+
+        .list-container {
+            margin-top: 20px;
+            border-top: 2px dashed #ccc;
+            padding-top: 15px;
+        }
+
+        .list-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .list-item-info {
+            flex: 1;
+        }
+
+        .list-item-info strong {
+            color: var(--primary-green);
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .list-item-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-edit {
+            background-color: #3498db;
+        }
+        .btn-edit:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+
+        .order-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-left: 5px solid var(--primary-green);
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .order-card-header strong {
+            color: var(--primary-green);
+            font-size: 15px;
+        }
+
+        .order-card-header .order-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .order-card-body {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .order-card-body .order-total {
+            font-weight: bold;
+            color: #c0392b;
+            font-size: 15px;
+        }
+
+        .order-card-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .order-card-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .summary-box {
+            background: #e8f8f0;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary-green);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ccc;
+            font-size: 14px;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 16px;
+            color: #c0392b;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 2px solid var(--primary-green);
+        }
+
+        .product-summary-box {
+            background: #fff8e1;
+            border: 2px solid var(--primary-yellow);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .product-summary-box h3 {
+            margin: 0 0 10px 0;
+            color: #8a6d00;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .product-summary-table thead {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .product-summary-table th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .product-summary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-summary-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .product-summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-summary-table .qty-cell {
+            color: #0b7a4a;
+            font-weight: bold;
+        }
+
+        .product-summary-table .amount-cell {
+            color: #c0392b;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .product-summary-table tfoot {
+            background: #e8f8f0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .product-summary-table tfoot td {
+            padding: 10px 8px;
+            color: var(--primary-green);
+            border-top: 2px solid var(--primary-green);
+        }
+
+        .empty-msg {
+            color: #999;
+            text-align: center;
+            padding: 15px;
+            font-style: italic;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f4e11e;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .product-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .product-row button {
+                width: 100%;
+            }
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .list-item-actions {
+                width: 100%;
+            }
+            .list-item-actions button {
+                flex: 1;
+            }
+            .tab-btn {
+                font-size: 11px;
+                padding: 12px 5px;
+            }
+            .product-summary-table th,
+            .product-summary-table td {
+                padding: 6px 4px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>વેદરાજ મસાલા - સેલ્સ ઓર્ડર</h1>
+        <p>Order Booking System</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('orderTab')">નવો ઓર્ડર</button>
+        <button class="tab-btn" onclick="openTab('historyTab')">ઓર્ડર હિસ્ટ્રી <span class="badge" id="historyBadge">0</span></button>
+        <button class="tab-btn" onclick="openTab('addMerchantTab')">વેપારી</button>
+        <button class="tab-btn" onclick="openTab('addProductTab')">પ્રોડક્ટ</button>
+    </div>
+
+    <!-- ============ TAB 1: ORDER ============ -->
+    <div id="orderTab" class="tab-content active">
+        <div id="orderAlert" class="alert"></div>
+        
+        <div class="info-badge" id="infoBadge">
+            <div>📅 <span id="displayDate">તારીખ લોડ થઈ રહી છે...</span></div>
+            <div>⏰ <span id="displayTime">સમય લોડ થઈ રહ્યો છે...</span></div>
+            <div>📍 <span id="displayLocation">લોકેશન મેળવાઈ રહ્યું છે...</span></div>
+        </div>
+
+        <div class="order-section">
+            <h3>1. વેપારીની વિગતો</h3>
+            <div class="form-group">
+                <label for="merchantIdSearch">વેપારી નંબર (ID) નાખો:</label>
+                <input type="text" id="merchantIdSearch" class="form-control" placeholder="દા.ત. 101" oninput="fetchMerchantDetails()">
+            </div>
+            <div class="form-group">
+                <label for="mShopName">દુકાનનું નામ:</label>
+                <input type="text" id="mShopName" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label for="mGst">GST નંબર:</label>
+                <input type="text" id="mGst" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label for="mName">વેપારીનું નામ:</label>
+                <input type="text" id="mName" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label for="mMobile">મોબાઈલ નંબર:</label>
+                <input type="text" id="mMobile" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label for="mVillage">ગામ:</label>
+                <input type="text" id="mVillage" class="form-control" readonly>
+            </div>
+        </div>
+
+        <div class="order-section">
+            <h3>2. ઓર્ડર વિગતો</h3>
+            <div class="hint-box">
+                💡 પ્રોડક્ટ સિલેક્ટ કર્યા પછી પેકિંગ દેખાશે. નીચે <b>કિલોમાં Qty</b> નાખો.
+            </div>
+            <div id="productContainer" style="margin-top: 15px;"></div>
+            <button class="btn btn-yellow" onclick="addProductRow()" style="margin-bottom: 15px;">+ બીજી પ્રોડક્ટ ઉમેરો</button>
+            
+            <div class="form-group">
+                <label for="totalAmount">કુલ રકમ (₹):</label>
+                <input type="number" id="totalAmount" class="form-control" placeholder="કુલ રકમ" readonly>
+            </div>
+        </div>
+
+        <button class="btn" onclick="submitOrder()">✅ ઓર્ડર સબમિટ કરો (WhatsApp + Save)</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-pdf" onclick="downloadPDF()">📄 આ ઓર્ડરની PDF</button>
+            <button class="btn btn-excel" onclick="downloadExcel()">📊 આ ઓર્ડરની Excel</button>
+        </div>
+    </div>
+
+    <!-- ============ TAB 2: HISTORY ============ -->
+    <div id="historyTab" class="tab-content">
+        <div id="historyAlert" class="alert"></div>
+        
+        <div class="summary-box">
+            <h3>📊 આજના ઓર્ડરનો સારાંશ</h3>
+            <div class="summary-row"><span>કુલ ઓર્ડર:</span><span id="summaryCount">0</span></div>
+            <div class="summary-row"><span>કુલ રકમ:</span><span id="summaryTotal">₹0</span></div>
+            <div class="summary-row"><span>તારીખ:</span><span id="summaryDate">-</span></div>
+        </div>
+
+        <div class="product-summary-box">
+            <h3>📦 પ્રોડક્ટ પ્રમાણે કુલ વેચાણ (આજનું)</h3>
+            <div id="productSummaryContainer">
+                <p class="empty-msg">હજી કોઈ ઓર્ડર નથી.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-pdf" onclick="downloadDailyPDF()" style="flex: 1;">📄 દિવસની PDF</button>
+            <button class="btn btn-excel" onclick="downloadDailyExcel()" style="flex: 1;">📊 દિવસની Excel</button>
+        </div>
+        <button class="btn btn-danger" onclick="clearTodayOrders()">🗑️ આજના ઓર્ડર ક્લિયર કરો</button>
+
+        <div class="list-container">
+            <div class="list-title">📋 આજના ઓર્ડરની યાદી</div>
+            <div id="orderHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- ============ TAB 3: MERCHANTS ============ -->
+    <div id="addMerchantTab" class="tab-content">
+        <div id="merchantAlert" class="alert"></div>
+        <h3 id="merchantFormTitle">નવો વેપારી ઉમેરો</h3>
+        <input type="hidden" id="editMerchantId" value="">
+        
+        <div class="form-group">
+            <label for="newMId">વેપારી ID:</label>
+            <input type="text" id="newMId" class="form-control" placeholder="દા.ત. 105">
+        </div>
+        <div class="form-group">
+            <label for="newShopName">દુકાનનું નામ:</label>
+            <input type="text" id="newShopName" class="form-control" placeholder="દા.ત. શ્રી રામ કિરાણા સ્ટોર">
+        </div>
+        <div class="form-group">
+            <label for="newGst">GST નંબર (વૈકલ્પિક):</label>
+            <input type="text" id="newGst" class="form-control" placeholder="દા.ત. 24AAAAA0000A1Z5">
+        </div>
+        <div class="form-group">
+            <label for="newMName">વેપારીનું નામ:</label>
+            <input type="text" id="newMName" class="form-control" placeholder="નામ દાખલ કરો">
+        </div>
+        <div class="form-group">
+            <label for="newMMobile">મોબાઈલ નંબર:</label>
+            <input type="text" id="newMMobile" class="form-control" placeholder="10 અંકનો નંબર">
+        </div>
+        <div class="form-group">
+            <label for="newMVillage">ગામ:</label>
+            <input type="text" id="newMVillage" class="form-control" placeholder="ગામનું નામ">
+        </div>
+        <button class="btn" id="merchantSaveBtn" onclick="saveMerchant()">વેપારી સેવ કરો</button>
+        <button class="btn btn-cancel" id="merchantCancelBtn" onclick="cancelMerchantEdit()" style="display: none;">રદ કરો</button>
+
+        <div class="list-container">
+            <div class="list-title">📋 વેપારીઓની યાદી (કુલ: <span id="merchantCount">0</span>)</div>
+            <div id="merchantList"></div>
+        </div>
+    </div>
+
+    <!-- ============ TAB 4: PRODUCTS ============ -->
+    <div id="addProductTab" class="tab-content">
+        <div id="productAlert" class="alert"></div>
+        <h3 id="productFormTitle">નવી પ્રોડક્ટ ઉમેરો</h3>
+        <input type="hidden" id="editProductId" value="">
+
+        <div class="form-group">
+            <label for="newPName">પ્રોડક્ટનું નામ:</label>
+            <input type="text" id="newPName" class="form-control" placeholder="દા.ત. ગરમ મસાલા">
+        </div>
+        <div class="form-group">
+            <label for="newPPack">પેકિંગ સાઈઝ:</label>
+            <select id="newPPack" class="form-control">
+                <option value="50g">50g</option>
+                <option value="100g">100g</option>
+                <option value="200g">200g</option>
+                <option value="500g">500g</option>
+                <option value="1kg">1kg</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="newPPricePerKg">કિલો દીઠ ભાવ (₹/Kg):</label>
+            <input type="number" id="newPPricePerKg" class="form-control" placeholder="દા.ત. 500">
+            <div class="hint-box">
+                💡 ₹500/Kg હોય તો 50g = ₹25, 100g = ₹50, 200g = ₹100, 500g = ₹250
+            </div>
+        </div>
+        <button class="btn" id="productSaveBtn" onclick="saveProduct()">પ્રોડક્ટ સેવ કરો</button>
+        <button class="btn btn-cancel" id="productCancelBtn" onclick="cancelProductEdit()" style="display: none;">રદ કરો</button>
+
+        <div class="list-container">
+            <div class="list-title">📋 પ્રોડક્ટની યાદી (કુલ: <span id="productCount">0</span>)</div>
+            <div id="productList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText">PDF બની રહી છે...</div>
+</div>
+
+<script>
+    // ============================================================
+    // HELPER: Safe number conversion
+    // ============================================================
+    function num(v) {
+        const n = parseFloat(v);
+        return isNaN(n) || !isFinite(n) ? 0 : n;
+    }
+
+    // ============================================================
+    // DATABASE
+    // ============================================================
+    let merchants = JSON.parse(localStorage.getItem('vedraj_merchants')) || [
+        { id: '101', shopName: 'શ્રી રામ કિરાણા સ્ટોર', gst: '24AAAAA0000A1Z5', name: 'રમેશભાઈ પટેલ', mobile: '9876543210', village: 'રાજકોટ' },
+        { id: '102', shopName: 'મહાદેવ જનરલ સ્ટોર', gst: '', name: 'સુરેશભાઈ શાહ', mobile: '9123456789', village: 'જામનગર' }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('vedraj_products')) || [
+        { id: 1, name: 'હળદર પાવડર', pack: '100g', pricePerKg: 400 },
+        { id: 2, name: 'લાલ મરચું પાવડર', pack: '100g', pricePerKg: 600 },
+        { id: 3, name: 'ધાણા જીરું પાવડર', pack: '200g', pricePerKg: 400 },
+        { id: 4, name: 'ગરમ મસાલા', pack: '50g', pricePerKg: 1000 }
+    ];
+
+    let todayOrders = JSON.parse(localStorage.getItem('vedraj_today_orders')) || [];
+
+    // 🔑 FIX OLD ORDERS: null/NaN values ને fix કરો
+    function fixOldOrders() {
+        let fixedCount = 0;
+        todayOrders.forEach(order => {
+            if(!Array.isArray(order.items)) { order.items = []; return; }
+            order.items.forEach(item => {
+                if(num(item.pricePerKg) === 0 && item.pricePerKg === null) {
+                    // જૂના પ્રોડક્ટમાંથી ભાવ શોધો
+                    const prod = products.find(p => p.name === item.name && p.pack === item.pack);
+                    if(prod) {
+                        item.pricePerKg = prod.pricePerKg;
+                        item.total = num(prod.pricePerKg) * num(item.qtyKg);
+                        fixedCount++;
+                    } else {
+                        item.pricePerKg = 0;
+                        item.total = 0;
+                    }
+                }
+                // Bad numbers fix
+                item.pricePerKg = num(item.pricePerKg);
+                item.qtyKg = num(item.qtyKg);
+                item.total = num(item.total);
+            });
+            order.totalAmount = num(order.totalAmount);
+        });
+        if(fixedCount > 0) {
+            localStorage.setItem('vedraj_today_orders', JSON.stringify(todayOrders));
+            console.log("✅ Fixed " + fixedCount + " old order items");
+        }
+    }
+
+    function persistData() {
+        localStorage.setItem('vedraj_merchants', JSON.stringify(merchants));
+        localStorage.setItem('vedraj_products', JSON.stringify(products));
+        localStorage.setItem('vedraj_today_orders', JSON.stringify(todayOrders));
+    }
+
+    // ============================================================
+    // DATE, TIME, LOCATION
+    // ============================================================
+    let currentDateTime = '';
+    let currentDate = '';
+    let currentLocation = 'લોકેશન મળ્યું નથી';
+
+    function updateDateTime() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const dateStr = `${day}-${month}-${year}`;
+        currentDate = dateStr;
+
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const timeStr = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+
+        currentDateTime = `${dateStr} ${timeStr}`;
+        document.getElementById('displayDate').textContent = dateStr;
+        document.getElementById('displayTime').textContent = timeStr;
+        document.getElementById('summaryDate').textContent = dateStr;
+    }
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(5);
+                    const lon = position.coords.longitude.toFixed(5);
+                    currentLocation = `Lat: ${lat}, Lon: ${lon}`;
+                    document.getElementById('displayLocation').textContent = currentLocation;
+                },
+                () => {
+                    currentLocation = 'લોકેશન મળ્યું નથી';
+                    document.getElementById('displayLocation').textContent = currentLocation;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            currentLocation = 'લોકેશન સપોર્ટ નથી';
+            document.getElementById('displayLocation').textContent = currentLocation;
+        }
+    }
+
+    setInterval(updateDateTime, 60000);
+
+    // ============================================================
+    // UI HELPERS
+    // ============================================================
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function showAlert(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        el.textContent = message;
+        el.className = `alert alert-${type}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    function showLoading(text) {
+        document.getElementById('loadingText').textContent = text || 'પ્રોસેસ થઈ રહી છે...';
+        document.getElementById('loadingOverlay').classList.add('show');
+    }
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+    // ============================================================
+    // PRODUCT SUMMARY (FIXED)
+    // ============================================================
+    function getProductSummary() {
+        const summary = {};
+        todayOrders.forEach(order => {
+            if(!Array.isArray(order.items)) return;
+            order.items.forEach(item => {
+                const pricePerKg = num(item.pricePerKg);
+                const qtyKg = num(item.qtyKg);
+                const total = num(item.total) || (pricePerKg * qtyKg);
+
+                const key = item.name + '|' + item.pack;
+                if(!summary[key]) {
+                    summary[key] = {
+                        name: item.name || 'Unknown',
+                        pack: item.pack || '-',
+                        totalQtyKg: 0,
+                        totalAmount: 0,
+                        pricePerKg: pricePerKg
+                    };
+                }
+                summary[key].totalQtyKg += qtyKg;
+                summary[key].totalAmount += total;
+                // જો પહેલા 0 હતું અને હવે મળ્યું, તો update
+                if(summary[key].pricePerKg === 0 && pricePerKg > 0) {
+                    summary[key].pricePerKg = pricePerKg;
+                }
+            });
+        });
+        return Object.values(summary).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'gu'));
+    }
+
+    function renderProductSummary() {
+        const container = document.getElementById('productSummaryContainer');
+        const summary = getProductSummary();
+
+        if(summary.length === 0) {
+            container.innerHTML = '<p class="empty-msg">હજી કોઈ ઓર્ડર નથી.</p>';
+            return;
+        }
+
+        let grandQty = 0, grandAmount = 0;
+        let rowsHtml = summary.map(s => {
+            grandQty += s.totalQtyKg;
+            grandAmount += s.totalAmount;
+            const rateDisplay = s.pricePerKg > 0 ? `₹${s.pricePerKg}/Kg` : '—';
+            return `
+                <tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.pack}</td>
+                    <td class="qty-cell">${s.totalQtyKg.toFixed(2)} Kg</td>
+                    <td>${rateDisplay}</td>
+                    <td class="amount-cell">₹${s.totalAmount.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        container.innerHTML = `
+            <table class="product-summary-table">
+                <thead>
+                    <tr>
+                        <th>પ્રોડક્ટ</th>
+                        <th>પેકિંગ</th>
+                        <th>કુલ જથ્થો</th>
+                        <th>ભાવ/Kg</th>
+                        <th style="text-align:right;">કુલ રકમ</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">કુલ</td>
+                        <td class="qty-cell">${grandQty.toFixed(2)} Kg</td>
+                        <td>-</td>
+                        <td class="amount-cell">₹${grandAmount.toFixed(2)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+    }
+
+    // ============================================================
+    // MERCHANT MANAGEMENT
+    // ============================================================
+    function renderMerchantList() {
+        const listEl = document.getElementById('merchantList');
+        document.getElementById('merchantCount').textContent = merchants.length;
+        if(merchants.length === 0) {
+            listEl.innerHTML = '<p style="color:#999; text-align:center;">કોઈ વેપારી નથી.</p>';
+            return;
+        }
+        listEl.innerHTML = merchants.map(m => `
+            <div class="list-item">
+                <div class="list-item-info">
+                    <strong>ID: ${m.id}</strong> | ${m.shopName}<br>
+                    <span style="color:#666; font-size:13px;">${m.name} | 📞 ${m.mobile} | 📍 ${m.village}${m.gst ? ' | GST: ' + m.gst : ''}</span>
+                </div>
+                <div class="list-item-actions">
+                    <button class="btn-edit" onclick="editMerchant('${m.id}')">✏️ Edit</button>
+                    <button class="btn-delete" onclick="deleteMerchant('${m.id}')">🗑️ Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function saveMerchant() {
+        const id = document.getElementById('newMId').value.trim();
+        const shopName = document.getElementById('newShopName').value.trim();
+        const gst = document.getElementById('newGst').value.trim();
+        const name = document.getElementById('newMName').value.trim();
+        const mobile = document.getElementById('newMMobile').value.trim();
+        const village = document.getElementById('newMVillage').value.trim();
+        const editId = document.getElementById('editMerchantId').value;
+
+        if(!id || !shopName || !name || !mobile || !village) {
+            showAlert('merchantAlert', 'બધી જરૂરી માહિતી ભરો.', 'danger');
+            return;
+        }
+
+        if(editId) {
+            if(id !== editId && merchants.some(m => m.id === id)) {
+                showAlert('merchantAlert', 'આ ID બીજા વેપારી પાસે છે.', 'danger');
+                return;
+            }
+            const index = merchants.findIndex(m => m.id === editId);
+            merchants[index] = { id, shopName, gst, name, mobile, village };
+            showAlert('merchantAlert', 'વેપારી અપડેટ થયો!', 'success');
+            cancelMerchantEdit();
+        } else {
+            if(merchants.some(m => m.id === id)) {
+                showAlert('merchantAlert', 'આ ID પહેલેથી છે.', 'danger');
+                return;
+            }
+            merchants.push({ id, shopName, gst, name, mobile, village });
+            showAlert('merchantAlert', 'નવો વેપારી ઉમેરાયો!', 'success');
+            clearMerchantForm();
+        }
+        persistData();
+        renderMerchantList();
+    }
+
+    function editMerchant(id) {
+        const m = merchants.find(x => x.id === id);
+        if(!m) return;
+        document.getElementById('editMerchantId').value = id;
+        document.getElementById('newMId').value = m.id;
+        document.getElementById('newShopName').value = m.shopName;
+        document.getElementById('newGst').value = m.gst || '';
+        document.getElementById('newMName').value = m.name;
+        document.getElementById('newMMobile').value = m.mobile;
+        document.getElementById('newMVillage').value = m.village;
+        document.getElementById('merchantFormTitle').textContent = 'વેપારી Edit (ID: ' + id + ')';
+        document.getElementById('merchantSaveBtn').textContent = 'અપડેટ કરો';
+        document.getElementById('merchantCancelBtn').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelMerchantEdit() {
+        document.getElementById('editMerchantId').value = '';
+        clearMerchantForm();
+        document.getElementById('merchantFormTitle').textContent = 'નવો વેપારી ઉમેરો';
+        document.getElementById('merchantSaveBtn').textContent = 'વેપારી સેવ કરો';
+        document.getElementById('merchantCancelBtn').style.display = 'none';
+    }
+
+    function clearMerchantForm() {
+        ['newMId','newShopName','newGst','newMName','newMMobile','newMVillage'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function deleteMerchant(id) {
+        if(!confirm('શું ખરેખર આ વેપારીને કાઢી નાખવો છે?')) return;
+        merchants = merchants.filter(m => m.id !== id);
+        persistData();
+        renderMerchantList();
+        showAlert('merchantAlert', 'વેપારી કાઢી નાખ્યો.', 'success');
+    }
+
+    // ============================================================
+    // PRODUCT MANAGEMENT
+    // ============================================================
+    function packToKg(pack) {
+        if(pack === '50g') return 0.05;
+        if(pack === '100g') return 0.1;
+        if(pack === '200g') return 0.2;
+        if(pack === '500g') return 0.5;
+        if(pack === '1kg') return 1;
+        return 1;
+    }
+
+    function renderProductList() {
+        const listEl = document.getElementById('productList');
+        document.getElementById('productCount').textContent = products.length;
+        if(products.length === 0) {
+            listEl.innerHTML = '<p style="color:#999; text-align:center;">કોઈ પ્રોડક્ટ નથી.</p>';
+            return;
+        }
+        listEl.innerHTML = products.map(p => {
+            const examplePrice = (num(p.pricePerKg) * packToKg(p.pack)).toFixed(2);
+            return `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <strong>${p.name}</strong> (${p.pack})<br>
+                        <span style="color:#666; font-size:13px;">₹${p.pricePerKg}/Kg → ${p.pack} = ₹${examplePrice}</span>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn-edit" onclick="editProduct(${p.id})">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteProduct(${p.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function saveProduct() {
+        const name = document.getElementById('newPName').value.trim();
+        const pack = document.getElementById('newPPack').value;
+        const pricePerKg = document.getElementById('newPPricePerKg').value.trim();
+        const editId = document.getElementById('editProductId').value;
+
+        if(!name || !pricePerKg) {
+            showAlert('productAlert', 'નામ અને ભાવ ભરો.', 'danger');
+            return;
+        }
+
+        if(editId) {
+            const index = products.findIndex(p => p.id == editId);
+            products[index] = { id: parseInt(editId), name, pack, pricePerKg: num(pricePerKg) };
+            showAlert('productAlert', 'પ્રોડક્ટ અપડેટ થઈ!', 'success');
+            cancelProductEdit();
+        } else {
+            const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+            products.push({ id: newId, name, pack, pricePerKg: num(pricePerKg) });
+            showAlert('productAlert', 'નવી પ્રોડક્ટ ઉમેરાઈ!', 'success');
+            clearProductForm();
+        }
+        persistData();
+        renderProductList();
+        refreshOrderDropdowns();
+    }
+
+    function editProduct(id) {
+        const p = products.find(x => x.id === id);
+        if(!p) return;
+        document.getElementById('editProductId').value = id;
+        document.getElementById('newPName').value = p.name;
+        document.getElementById('newPPack').value = p.pack;
+        document.getElementById('newPPricePerKg').value = p.pricePerKg;
+        document.getElementById('productFormTitle').textContent = 'પ્રોડક્ટ Edit (ID: ' + id + ')';
+        document.getElementById('productSaveBtn').textContent = 'અપડેટ કરો';
+        document.getElementById('productCancelBtn').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelProductEdit() {
+        document.getElementById('editProductId').value = '';
+        clearProductForm();
+        document.getElementById('productFormTitle').textContent = 'નવી પ્રોડક્ટ ઉમેરો';
+        document.getElementById('productSaveBtn').textContent = 'પ્રોડક્ટ સેવ કરો';
+        document.getElementById('productCancelBtn').style.display = 'none';
+    }
+
+    function clearProductForm() {
+        document.getElementById('newPName').value = '';
+        document.getElementById('newPPack').value = '50g';
+        document.getElementById('newPPricePerKg').value = '';
+    }
+
+    function deleteProduct(id) {
+        if(!confirm('શું ખરેખર આ પ્રોડક્ટ કાઢી નાખવી છે?')) return;
+        products = products.filter(p => p.id !== id);
+        persistData();
+        renderProductList();
+        refreshOrderDropdowns();
+        showAlert('productAlert', 'પ્રોડક્ટ કાઢી નાખી.', 'success');
+    }
+
+    // ============================================================
+    // ORDER SECTION
+    // ============================================================
+    function fetchMerchantDetails() {
+        const idInput = document.getElementById('merchantIdSearch').value.trim();
+        const shopInput = document.getElementById('mShopName');
+        const gstInput = document.getElementById('mGst');
+        const nameInput = document.getElementById('mName');
+        const mobileInput = document.getElementById('mMobile');
+        const villageInput = document.getElementById('mVillage');
+
+        if(idInput === '') {
+            [shopInput, gstInput, nameInput, mobileInput, villageInput].forEach(el => el.value = '');
+            return;
+        }
+
+        const merchant = merchants.find(m => m.id === idInput);
+        if(merchant) {
+            shopInput.value = merchant.shopName || '';
+            gstInput.value = merchant.gst || 'N/A';
+            nameInput.value = merchant.name || '';
+            mobileInput.value = merchant.mobile || '';
+            villageInput.value = merchant.village || '';
+        } else {
+            shopInput.value = 'વેપારી મળ્યો નથી';
+            gstInput.value = '';
+            nameInput.value = '';
+            mobileInput.value = '';
+            villageInput.value = '';
+        }
+    }
+
+    function addProductRow() {
+        const container = document.getElementById('productContainer');
+        const row = document.createElement('div');
+        row.className = 'product-row';
+        row.innerHTML = `
+            <select class="p-select" onchange="onProductSelect(this)" style="flex: 2;"></select>
+            <div class="pack-display">પેક: --</div>
+            <input type="number" class="p-qty" placeholder="કિલો" min="0" step="0.01" value="1" oninput="calculateTotal()">
+            <input type="text" class="p-price" placeholder="કિંમત" readonly>
+            <button onclick="removeRow(this)">X</button>
+        `;
+        container.appendChild(row);
+        populateProductDropdown(row.querySelector('.p-select'));
+    }
+
+    function populateProductDropdown(selectEl, selectedValue) {
+        let opts = '<option value="">પ્રોડક્ટ પસંદ કરો</option>';
+        products.forEach(p => {
+            opts += `<option value="${p.id}" data-pricekg="${p.pricePerKg}" data-name="${p.name}" data-pack="${p.pack}">${p.name} (${p.pack}) - ₹${p.pricePerKg}/Kg</option>`;
+        });
+        selectEl.innerHTML = opts;
+        if(selectedValue) selectEl.value = selectedValue;
+    }
+
+    function refreshOrderDropdowns() {
+        document.querySelectorAll('.p-select').forEach(select => {
+            const currentVal = select.value;
+            const stillExists = products.some(p => p.id == currentVal);
+            populateProductDropdown(select, stillExists ? currentVal : '');
+            if(!stillExists) select.parentElement.querySelector('.pack-display').textContent = 'પેક: --';
+        });
+        calculateTotal();
+    }
+
+    function removeRow(btn) {
+        btn.parentElement.remove();
+        calculateTotal();
+    }
+
+    function onProductSelect(selectElement) {
+        const row = selectElement.parentElement;
+        const selOpt = selectElement.options[selectElement.selectedIndex];
+        row.querySelector('.pack-display').textContent = 'પેક: ' + (selOpt.getAttribute('data-pack') || '--');
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.product-row').forEach(row => {
+            const select = row.querySelector('.p-select');
+            const selOpt = select.options[select.selectedIndex];
+            const pricePerKg = num(selOpt.getAttribute('data-pricekg'));
+            const qtyKg = num(row.querySelector('.p-qty').value);
+            const rowTotal = pricePerKg * qtyKg;
+            row.querySelector('.p-price').value = rowTotal > 0 ? rowTotal.toFixed(2) : '';
+            total += rowTotal;
+        });
+        document.getElementById('totalAmount').value = total > 0 ? total.toFixed(2) : '';
+    }
+
+    function getOrderData() {
+        const mId = document.getElementById('merchantIdSearch').value;
+        const mShop = document.getElementById('mShopName').value;
+        const mGst = document.getElementById('mGst').value;
+        const mName = document.getElementById('mName').value;
+        const mMobile = document.getElementById('mMobile').value;
+        const mVillage = document.getElementById('mVillage').value;
+        const total = num(document.getElementById('totalAmount').value);
+
+        if(!mId || mShop === 'વેપારી મળ્યો નથી') {
+            showAlert('orderAlert', 'સાચો વેપારી નંબર દાખલ કરો.', 'danger');
+            return null;
+        }
+        if(!total || total <= 0) {
+            showAlert('orderAlert', 'ઓર્ડરની વિગતો ભરો.', 'danger');
+            return null;
+        }
+
+        const items = [];
+        document.querySelectorAll('.product-row').forEach(row => {
+            const select = row.querySelector('.p-select');
+            const selOpt = select.options[select.selectedIndex];
+            if(selOpt.value) {
+                const pricePerKg = num(selOpt.getAttribute('data-pricekg'));
+                const qtyKg = num(row.querySelector('.p-qty').value);
+                items.push({
+                    name: selOpt.getAttribute('data-name'),
+                    pack: selOpt.getAttribute('data-pack'),
+                    pricePerKg, qtyKg,
+                    total: pricePerKg * qtyKg
+                });
+            }
+        });
+
+        return {
+            merchantId: mId, shopName: mShop, gst: mGst, merchantName: mName,
+            mobile: mMobile, village: mVillage, items, totalAmount: total,
+            dateTime: currentDateTime, date: currentDate, location: currentLocation
+        };
+    }
+
+    // ============================================================
+    // SUBMIT ORDER
+    // ============================================================
+    function submitOrder() {
+        const order = getOrderData();
+        if(!order) return;
+
+        order.id = Date.now();
+        order.savedAt = new Date().toISOString();
+        todayOrders.push(order);
+        persistData();
+        renderOrderHistory();
+        renderProductSummary();
+        updateHistoryBadge();
+
+        let message = `*વેદરાજ મસાલા - ઓર્ડર*\n\n`;
+        message += `*તારીખ/સમય:* ${order.dateTime}\n`;
+        message += `*લોકેશન:* ${order.location}\n\n`;
+        message += `*વેપારી ID:* ${order.merchantId}\n`;
+        message += `*દુકાન:* ${order.shopName}\n`;
+        if(order.gst && order.gst !== 'N/A') message += `*GST:* ${order.gst}\n`;
+        message += `*વેપારી:* ${order.merchantName}\n`;
+        message += `*ગામ:* ${order.village}\n`;
+        message += `*મોબાઈલ:* ${order.mobile}\n\n`;
+        message += `*ઓર્ડર વિગતો:*\n`;
+        order.items.forEach((item, i) => {
+            message += `${i + 1}. ${item.name} (${item.pack})\n   ${item.qtyKg} Kg × ₹${item.pricePerKg}/Kg = ₹${item.total.toFixed(2)}\n`;
+        });
+        message += `\n*કુલ રકમ: ₹${order.totalAmount}*\n\nઆભાર! વેદરાજ મસાલા`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappNumber = order.mobile.length === 10 ? '91' + order.mobile : order.mobile;
+        window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+
+        showAlert('orderAlert', '✅ ઓર્ડર સેવ થયો + WhatsApp ખૂલી રહ્યું છે!', 'success');
+        
+        document.getElementById('merchantIdSearch').value = '';
+        ['mShopName','mGst','mName','mMobile','mVillage','totalAmount'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('productContainer').innerHTML = '';
+        addProductRow();
+    }
+
+    // ============================================================
+    // ORDER HISTORY
+    // ============================================================
+    function renderOrderHistory() {
+        const listEl = document.getElementById('orderHistoryList');
+        if(todayOrders.length === 0) {
+            listEl.innerHTML = '<p style="color:#999; text-align:center; padding: 20px;">હજી કોઈ ઓર્ડર નથી.</p>';
+            document.getElementById('summaryCount').textContent = '0';
+            document.getElementById('summaryTotal').textContent = '₹0';
+            return;
+        }
+        let total = 0;
+        listEl.innerHTML = todayOrders.map((o, idx) => {
+            total += num(o.totalAmount);
+            return `
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <strong>${idx + 1}. ${o.shopName}</strong>
+                        <span class="order-time">🕐 ${o.dateTime}</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div>${o.merchantName} | 📞 ${o.mobile} | 📍 ${o.village}</div>
+                        <div style="margin-top:5px;">${(o.items||[]).map(it => `${it.name} (${it.pack}) - ${it.qtyKg} Kg`).join(' • ')}</div>
+                        <div style="margin-top:5px;"><span class="order-total">કુલ: ₹${num(o.totalAmount).toFixed(2)}</span></div>
+                    </div>
+                    <div class="order-card-actions">
+                        <button class="btn-blue" onclick="viewOrderPDF(${o.id})">📄 PDF</button>
+                        <button class="btn-delete" onclick="deleteOrder(${o.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('summaryCount').textContent = todayOrders.length;
+        document.getElementById('summaryTotal').textContent = '₹' + total.toFixed(2);
+    }
+
+    function updateHistoryBadge() {
+        document.getElementById('historyBadge').textContent = todayOrders.length;
+    }
+
+    function deleteOrder(id) {
+        if(!confirm('આ ઓર્ડર કાઢી નાખવો છે?')) return;
+        todayOrders = todayOrders.filter(o => o.id !== id);
+        persistData();
+        renderOrderHistory();
+        renderProductSummary();
+        updateHistoryBadge();
+        showAlert('historyAlert', 'ઓર્ડર કાઢી નાખ્યો.', 'success');
+    }
+
+    function clearTodayOrders() {
+        if(todayOrders.length === 0) {
+            showAlert('historyAlert', 'ક્લિયર કરવા માટે કોઈ ઓર્ડર નથી.', 'danger');
+            return;
+        }
+        if(!confirm('⚠️ શું ખરેખર આજના બધા ઓર્ડર ક્લિયર કરવા છે?\n\nપહેલા PDF/Excel ડાઉનલોડ કરી લો!')) return;
+        
+        let archive = JSON.parse(localStorage.getItem('vedraj_archive')) || [];
+        archive = archive.concat(todayOrders);
+        localStorage.setItem('vedraj_archive', JSON.stringify(archive));
+        
+        todayOrders = [];
+        persistData();
+        renderOrderHistory();
+        renderProductSummary();
+        updateHistoryBadge();
+        showAlert('historyAlert', '✅ આજના ઓર્ડર ક્લિયર થયા (Archive માં સેવ).', 'success');
+    }
+
+    // ============================================================
+    // GUJARATI FONT LOADER
+    // ============================================================
+    async function loadGujaratiFont(doc) {
+        const sources = [
+            { name: 'jsDelivr',
+              regular: 'https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Regular.ttf',
+              bold:    'https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Bold.ttf' },
+            { name: 'GitHub Raw',
+              regular: 'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Regular.ttf',
+              bold:    'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansGujarati/NotoSansGujarati-Bold.ttf' },
+            { name: 'Google Fonts',
+              regular: 'https://fonts.gstatic.com/s/notosansgujarati/v26/wlpugx_HC1ti5ViwvBqPdXfX8iODbpQzZMdSka_6tt4.ttf',
+              bold:    'https://fonts.gstatic.com/s/notosansgujarati/v26/wlpugx_HC1ti5ViwvBqPdXfX8iODbpQzZMdSka_6tt4.ttf' }
+        ];
+
+        let regularData = null, boldData = null, loadedFrom = '';
+        for (let i = 0; i < sources.length; i++) {
+            try {
+                console.log("Trying font source #" + (i+1) + ": " + sources[i].name);
+                regularData = await fetchFontAsBase64(sources[i].regular);
+                boldData = await fetchFontAsBase64(sources[i].bold);
+                loadedFrom = sources[i].name;
+                console.log("✅ Font loaded from: " + loadedFrom);
+                break;
+            } catch(e) {
+                console.warn("❌ Source #" + (i+1) + " failed: " + e.message);
+            }
+        }
+
+        if(!regularData || !boldData) {
+            throw new Error('બધા ફોન્ટ સ્રોત fail થયા. ઈન્ટરનેટ ચેક કરો.');
+        }
+
+        doc.addFileToVFS('NotoSansGujarati-Regular.ttf', regularData);
+        doc.addFont('NotoSansGujarati-Regular.ttf', 'NotoSansGujarati', 'normal');
+        doc.addFileToVFS('NotoSansGujarati-Bold.ttf', boldData);
+        doc.addFont('NotoSansGujarati-Bold.ttf', 'NotoSansGujarati', 'bold');
+        doc.setFont('NotoSansGujarati', 'normal');
+    }
+
+    function fetchFontAsBase64(url) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Timeout')), 15000);
+            fetch(url)
+                .then(res => { 
+                    clearTimeout(timeout);
+                    if(!res.ok) throw new Error('HTTP ' + res.status); 
+                    return res.arrayBuffer(); 
+                })
+                .then(buffer => {
+                    let binary = '';
+                    const bytes = new Uint8Array(buffer);
+                    const chunk = 8192;
+                    for (let i = 0; i < bytes.length; i += chunk) {
+                        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                    }
+                    resolve(btoa(binary));
+                })
+                .catch(err => { clearTimeout(timeout); reject(err); });
+        });
+    }
+
+    // ============================================================
+    // SINGLE ORDER PDF
+    // ============================================================
+    async function downloadPDF() {
+        const order = getOrderData();
+        if(!order) return;
+        order.id = Date.now();
+        await generateOrderPDF(order, `Vedraj_Order_${order.shopName}.pdf`);
+    }
+
+    async function viewOrderPDF(orderId) {
+        const order = todayOrders.find(o => o.id === orderId);
+        if(!order) return;
+        await generateOrderPDF(order, `Vedraj_Order_${order.shopName}.pdf`);
+    }
+
+    async function generateOrderPDF(order, filename) {
+        showLoading('📄 PDF બની રહી છે...');
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            await loadGujaratiFont(doc);
+
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(13, 158, 96);
+            doc.text("વેદરાજ મસાલા", 105, 20, null, null, "center");
+            
+            doc.setFont('NotoSansGujarati', 'normal');
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("સેલ્સ ઓર્ડર રસીદ", 105, 30, null, null, "center");
+            doc.setLineWidth(0.5);
+            doc.line(20, 35, 190, 35);
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`તારીખ/સમય: ${order.dateTime}`, 20, 43);
+            doc.text(`લોકેશન: ${order.location}`, 20, 49);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`વેપારી ID: ${order.merchantId}`, 20, 60);
+            doc.text(`દુકાનનું નામ: ${order.shopName}`, 20, 67);
+            if(order.gst && order.gst !== 'N/A') doc.text(`GST નંબર: ${order.gst}`, 20, 74);
+            doc.text(`વેપારીનું નામ: ${order.merchantName}`, 20, 81);
+            doc.text(`મોબાઈલ: ${order.mobile}`, 20, 88);
+            doc.text(`ગામ: ${order.village}`, 20, 95);
+
+            let yPos = 110;
+            doc.setFillColor(13, 158, 96);
+            doc.setTextColor(255, 255, 255);
+            doc.rect(20, yPos - 5, 170, 10, 'F');
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.text("પ્રોડક્ટ", 25, yPos);
+            doc.text("પેક", 75, yPos);
+            doc.text("ક્વોન્ટિટી (Kg)", 100, yPos);
+            doc.text("ભાવ/Kg", 140, yPos);
+            doc.text("કુલ", 170, yPos);
+
+            doc.setFont('NotoSansGujarati', 'normal');
+            doc.setTextColor(0, 0, 0);
+            yPos += 10;
+            (order.items || []).forEach(item => {
+                const ppk = num(item.pricePerKg);
+                const qk = num(item.qtyKg);
+                const tt = num(item.total) || (ppk * qk);
+                doc.text(String(item.name || ''), 25, yPos);
+                doc.text(String(item.pack || ''), 75, yPos);
+                doc.text(qk.toFixed(2), 100, yPos);
+                doc.text(ppk > 0 ? `Rs.${ppk}` : '—', 140, yPos);
+                doc.text(`Rs.${tt.toFixed(2)}`, 170, yPos);
+                yPos += 10;
+            });
+
+            yPos += 5;
+            doc.line(20, yPos, 190, yPos);
+            yPos += 10;
+            doc.setFontSize(14);
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.text(`કુલ રકમ: Rs. ${num(order.totalAmount).toFixed(2)}`, 140, yPos);
+
+            yPos += 20;
+            doc.setFontSize(10);
+            doc.setFont('NotoSansGujarati', 'normal');
+            doc.text("તમારા વ્યવસાય બદલ આભાર!", 105, yPos, null, null, "center");
+
+            doc.save(filename);
+            hideLoading();
+            showAlert('orderAlert', '✅ PDF ડાઉનલોડ થઈ!', 'success');
+        } catch(err) {
+            hideLoading();
+            console.error("PDF Error:", err);
+            alert('❌ PDF બનાવવામાં error!\n\n' + err.message);
+        }
+    }
+
+    // ============================================================
+    // DAILY PDF
+    // ============================================================
+    async function downloadDailyPDF() {
+        if(todayOrders.length === 0) {
+            showAlert('historyAlert', 'કોઈ ઓર્ડર નથી.', 'danger');
+            return;
+        }
+        showLoading('📄 દિવસની PDF બની રહી છે...');
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            await loadGujaratiFont(doc);
+
+            let grandTotal = 0;
+            let isFirstPage = true;
+
+            for (let i = 0; i < todayOrders.length; i++) {
+                const order = todayOrders[i];
+                grandTotal += num(order.totalAmount);
+
+                if(!isFirstPage) doc.addPage();
+                isFirstPage = false;
+
+                doc.setFont('NotoSansGujarati', 'bold');
+                doc.setFontSize(20);
+                doc.setTextColor(13, 158, 96);
+                doc.text("વેદરાજ મસાલા", 105, 18, null, null, "center");
+                
+                doc.setFont('NotoSansGujarati', 'normal');
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`સેલ્સ ઓર્ડર રસીદ (ક્રમાંક: ${i + 1} / ${todayOrders.length})`, 105, 26, null, null, "center");
+                doc.setLineWidth(0.5);
+                doc.line(20, 30, 190, 30);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`તારીખ/સમય: ${order.dateTime}`, 20, 37);
+                doc.text(`લોકેશન: ${order.location}`, 20, 42);
+
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`વેપારી ID: ${order.merchantId}`, 20, 52);
+                doc.text(`દુકાનનું નામ: ${order.shopName}`, 20, 58);
+                if(order.gst && order.gst !== 'N/A') doc.text(`GST નંબર: ${order.gst}`, 20, 64);
+                doc.text(`વેપારીનું નામ: ${order.merchantName}`, 20, 70);
+                doc.text(`મોબાઈલ: ${order.mobile}`, 20, 76);
+                doc.text(`ગામ: ${order.village}`, 20, 82);
+
+                let yPos = 95;
+                doc.setFillColor(13, 158, 96);
+                doc.setTextColor(255, 255, 255);
+                doc.rect(20, yPos - 5, 170, 9, 'F');
+                doc.setFont('NotoSansGujarati', 'bold');
+                doc.setFontSize(10);
+                doc.text("પ્રોડક્ટ", 25, yPos);
+                doc.text("પેક", 75, yPos);
+                doc.text("Qty (Kg)", 100, yPos);
+                doc.text("ભાવ/Kg", 140, yPos);
+                doc.text("કુલ", 170, yPos);
+
+                doc.setFont('NotoSansGujarati', 'normal');
+                doc.setTextColor(0, 0, 0);
+                yPos += 8;
+                (order.items || []).forEach(item => {
+                    const ppk = num(item.pricePerKg);
+                    const qk = num(item.qtyKg);
+                    const tt = num(item.total) || (ppk * qk);
+                    doc.text(String(item.name || ''), 25, yPos);
+                    doc.text(String(item.pack || ''), 75, yPos);
+                    doc.text(qk.toFixed(2), 100, yPos);
+                    doc.text(ppk > 0 ? `Rs.${ppk}` : '—', 140, yPos);
+                    doc.text(`Rs.${tt.toFixed(2)}`, 170, yPos);
+                    yPos += 8;
+                });
+
+                yPos += 3;
+                doc.line(20, yPos, 190, yPos);
+                yPos += 8;
+                doc.setFontSize(12);
+                doc.setFont('NotoSansGujarati', 'bold');
+                doc.text(`આ ઓર્ડરની કુલ રકમ: Rs. ${num(order.totalAmount).toFixed(2)}`, 140, yPos);
+            }
+
+            // Summary page
+            doc.addPage();
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.setFontSize(20);
+            doc.setTextColor(13, 158, 96);
+            doc.text("પ્રોડક્ટ પ્રમાણે કુલ વેચાણ", 105, 20, null, null, "center");
+            doc.setLineWidth(0.5);
+            doc.line(20, 28, 190, 28);
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`તારીખ: ${currentDate}`, 20, 38);
+
+            const summary = getProductSummary();
+            let yp = 50;
+            doc.setFillColor(13, 158, 96);
+            doc.setTextColor(255, 255, 255);
+            doc.rect(20, yp - 5, 170, 9, 'F');
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.setFontSize(10);
+            doc.text("પ્રોડક્ટ", 25, yp);
+            doc.text("પેકિંગ", 80, yp);
+            doc.text("કુલ જથ્થો", 110, yp);
+            doc.text("ભાવ/Kg", 140, yp);
+            doc.text("કુલ રકમ", 170, yp);
+
+            doc.setFont('NotoSansGujarati', 'normal');
+            doc.setTextColor(0, 0, 0);
+            yp += 9;
+            let sumQty = 0, sumAmount = 0;
+            summary.forEach(s => {
+                sumQty += s.totalQtyKg;
+                sumAmount += s.totalAmount;
+                doc.text(String(s.name || ''), 25, yp);
+                doc.text(String(s.pack || ''), 80, yp);
+                doc.text(`${s.totalQtyKg.toFixed(2)} Kg`, 110, yp);
+                doc.text(s.pricePerKg > 0 ? `Rs.${s.pricePerKg}` : '—', 140, yp);
+                doc.text(`Rs.${s.totalAmount.toFixed(2)}`, 170, yp);
+                yp += 9;
+            });
+
+            yp += 3;
+            doc.line(20, yp, 190, yp);
+            yp += 9;
+            doc.setFont('NotoSansGujarati', 'bold');
+            doc.setFontSize(12);
+            doc.text(`કુલ જથ્થો: ${sumQty.toFixed(2)} Kg`, 25, yp);
+            doc.text(`કુલ રકમ: Rs. ${sumAmount.toFixed(2)}`, 140, yp);
+
+            doc.save(`Vedraj_Daily_Report_${currentDate}.pdf`);
+            hideLoading();
+            showAlert('historyAlert', '✅ દિવસની PDF ડાઉનલોડ થઈ!', 'success');
+        } catch(err) {
+            hideLoading();
+            console.error("Daily PDF Error:", err);
+            alert('❌ દિવસની PDF બનાવવામાં error!\n\n' + err.message);
+        }
+    }
+
+    // ============================================================
+    // DAILY EXCEL
+    // ============================================================
+    function downloadDailyExcel() {
+        try {
+            if(todayOrders.length === 0) {
+                showAlert('historyAlert', 'કોઈ ઓર્ડર નથી.', 'danger');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            const orderData = [
+                ["Vedraj Masala - Daily Orders"],
+                ["Date", currentDate],
+                ["Total Orders", todayOrders.length],
+                [],
+                ["#", "Time", "Merchant ID", "Shop Name", "Merchant", "Mobile", "Village", "Product", "Pack", "Qty (Kg)", "Rate/Kg", "Total"]
+            ];
+
+            let grandTotal = 0;
+            let rowNum = 1;
+            todayOrders.forEach(o => {
+                grandTotal += num(o.totalAmount);
+                (o.items || []).forEach((it, idx) => {
+                    const ppk = num(it.pricePerKg);
+                    const qk = num(it.qtyKg);
+                    const tt = num(it.total) || (ppk * qk);
+                    if(idx === 0) {
+                        orderData.push([rowNum, o.dateTime, o.merchantId, o.shopName, o.merchantName, o.mobile, o.village, it.name, it.pack, qk, ppk, tt.toFixed(2)]);
+                    } else {
+                        orderData.push(["", "", "", "", "", "", "", it.name, it.pack, qk, ppk, tt.toFixed(2)]);
+                    }
+                });
+                orderData.push(["", "", "", "", "", "", "", "", "", "", "Order Total", num(o.totalAmount).toFixed(2)]);
+                rowNum++;
+            });
+            orderData.push([]);
+            orderData.push(["", "", "", "", "", "", "", "", "", "", "GRAND TOTAL", grandTotal.toFixed(2)]);
+
+            const ws1 = XLSX.utils.aoa_to_sheet(orderData);
+            ws1['!cols'] = [{ wch: 5 }, { wch: 18 }, { wch: 10 }, { wch: 22 }, { wch: 18 }, { wch: 12 }, { wch: 14 }, { wch: 20 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, ws1, "Orders");
+
+            const summary = getProductSummary();
+            const summaryData = [
+                ["Product-wise Summary"],
+                ["Date", currentDate],
+                [],
+                ["Product", "Pack", "Total Qty (Kg)", "Rate/Kg", "Total Amount"]
+            ];
+
+            let sumQty = 0, sumAmount = 0;
+            summary.forEach(s => {
+                sumQty += s.totalQtyKg;
+                sumAmount += s.totalAmount;
+                summaryData.push([s.name, s.pack, s.totalQtyKg.toFixed(2), s.pricePerKg, s.totalAmount.toFixed(2)]);
+            });
+            summaryData.push([]);
+            summaryData.push(["TOTAL", "", sumQty.toFixed(2), "", sumAmount.toFixed(2)]);
+
+            const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+            ws2['!cols'] = [{ wch: 22 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 14 }];
+            XLSX.utils.book_append_sheet(wb, ws2, "Product Summary");
+
+            XLSX.writeFile(wb, `Vedraj_Daily_${currentDate}.xlsx`);
+            showAlert('historyAlert', '✅ Excel ડાઉનલોડ થઈ!', 'success');
+        } catch(err) {
+            console.error("Excel Error:", err);
+            alert('❌ Excel બનાવવામાં error!\n\n' + err.message);
+        }
+    }
+
+    // ============================================================
+    // SINGLE ORDER EXCEL
+    // ============================================================
+    function downloadExcel() {
+        try {
+            const order = getOrderData();
+            if(!order) return;
+
+            const excelData = [
+                ["Vedraj Masala - Sales Order"], [],
+                ["Date/Time", order.dateTime],
+                ["Location", order.location], [],
+                ["Merchant ID", order.merchantId],
+                ["Shop Name", order.shopName],
+                ["GST No", order.gst || 'N/A'],
+                ["Merchant Name", order.merchantName],
+                ["Mobile", order.mobile],
+                ["Village", order.village], [],
+                ["Product", "Pack", "Qty (Kg)", "Rate/Kg", "Total"]
+            ];
+
+            order.items.forEach(item => {
+                excelData.push([item.name, item.pack, num(item.qtyKg), num(item.pricePerKg), num(item.total).toFixed(2)]);
+            });
+            excelData.push([]);
+            excelData.push(["", "", "", "Grand Total", num(order.totalAmount).toFixed(2)]);
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            ws['!cols'] = [{ wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Order");
+            XLSX.writeFile(wb, `Vedraj_Order_${order.shopName}.xlsx`);
+            showAlert('orderAlert', '✅ Excel ડાઉનલોડ થઈ!', 'success');
+        } catch(err) {
+            console.error("Excel Error:", err);
+            alert('❌ Excel બનાવવામાં error!\n\n' + err.message);
+        }
+    }
+
+    // ============================================================
+    // INITIALIZE
+    // ============================================================
+    window.onload = function() {
+        fixOldOrders();       // 🔑 જૂના ખરાબ ઓર્ડર્સ fix કરો
+        persistData();
+        addProductRow();
+        updateDateTime();
+        getLocation();
+        renderMerchantList();
+        renderProductList();
+        renderOrderHistory();
+        renderProductSummary();
+        updateHistoryBadge();
+        console.log("✅ Vedraj Masala System Ready");
+    };
+</script>
+
+</body>
+</html>
